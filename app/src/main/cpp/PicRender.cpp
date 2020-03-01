@@ -8,7 +8,7 @@
 
 using namespace std;
 
-#define MODULE_NAME "PicTexture"
+#define MODULE_NAME "PicRender"
 
 #define LOGD(...) __android_log_print(ANDROID_LOG_DEBUG, MODULE_NAME, __VA_ARGS__)
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, MODULE_NAME, __VA_ARGS__)
@@ -69,7 +69,7 @@ void PicRender::resetRenderSize(int left, int top, int width, int height) {
 
 void PicRender::render() {
     glViewport(backingLeft, backingTop, backingWidth, backingHeight);
-    glClearColor(0.0f, 0.0f, 1.0f, 0.0f);
+    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
     glClear(GL_COLOR_BUFFER_BIT);
     glEnable(GL_BLEND);
 

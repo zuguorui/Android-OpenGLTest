@@ -9,14 +9,14 @@ android {
     buildToolsVersion "29.0.2"
     defaultConfig {
         applicationId "com.example.opengltest"
-        minSdkVersion 28
+        minSdkVersion 27
         targetSdkVersion 29
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         externalNativeBuild {
             cmake {
-                arguments '-DANDROID_PLATFORM=26'
+                arguments '-DANDROID_PLATFORM=27'
                 cppFlags '-std=c++11'
             }
         }

@@ -8,6 +8,8 @@
 
 #include "PicPreviewer.h"
 
+using namespace std;
+
 #define MODULE_NAME "native_lib"
 
 #define LOGD(...) __android_log_print(ANDROID_LOG_DEBUG, MODULE_NAME, __VA_ARGS__)
@@ -30,11 +32,11 @@ Java_com_example_opengltest_MainActivity_stringFromJNI(
 }
 
 
-extern "C" JNIEXPORT void JNICALL
+extern "C" JNIEXPORT bool JNICALL
 Java_com_example_opengltest_MainActivity_nInit(JNIEnv *env, jobject instance)
 {
     picPreviewer = new PicPreviewer();
-    picPreviewer->start();
+    return picPreviewer->start();
 }
 
 extern "C" JNIEXPORT void JNICALL

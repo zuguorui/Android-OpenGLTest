@@ -9,9 +9,11 @@
 #include <stdio.h>
 #include <iostream>
 #include <thread>
+#include <list>
 #include "EGLCore.h"
 #include "PicRender.h"
 #include "PicTexture.h"
+
 
 using namespace std;
 
@@ -35,14 +37,14 @@ private:
     int width;
     int height;
     enum RenderThreadMessage{
-        NONE = 0, SET_WINDOW, EXIT
+        NONE = 0, SET_WINDOW, RESET_SIZE, EXIT
     };
 
     thread *renderThread = NULL;
     mutex renderMu;
     condition_variable newMsgSignal;
 
-    RenderThreadMessage message = NONE;
+//    RenderThreadMessage message = NONE;
 
     ANativeWindow *window;
 
@@ -58,7 +60,7 @@ private:
 
     void drawFrame();
 
-
+    list<RenderThreadMessage> msgQueue;
 
 };
 

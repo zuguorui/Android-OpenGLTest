@@ -10,6 +10,15 @@
 #define LOGD(...) __android_log_print(ANDROID_LOG_DEBUG, MODULE_NAME, __VA_ARGS__)
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, MODULE_NAME, __VA_ARGS__)
 
+bool checkGlError(const char* op) {
+    GLint error;
+    for (error = glGetError(); error; error = glGetError()) {
+        LOGE("error::after %s() glError (0x%x)\n", op, error);
+        return true;
+    }
+    return false;
+}
+
 PicTexture::PicTexture() {
 
 }
@@ -37,7 +46,7 @@ int PicTexture::initTexture() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     return 1;
 }
 
@@ -46,9 +55,9 @@ void PicTexture::updateDataToTexture(uint8_t *pixels, int width, int height) {
     {
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, texture);
-        if(glGetError())
+        if(checkGlError("glBindTexture"))
         {
-            LOGE("glBindTexture error");
+            LOGE("update pic glBindTexture error");
             return;
         }
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
@@ -57,14 +66,17 @@ void PicTexture::updateDataToTexture(uint8_t *pixels, int width, int height) {
 }
 
 bool PicTexture::bindTexture(GLint uniformSampler) {
-    glActiveTexture(GL_TEXTURE_2D);
+    glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, texture);
-    if(glGetError())
+
+    if(checkGlError("glBindTexture"))
     {
-        LOGE("glBindTexture error");
+        LOGE("bind texture glBindTexture error");
         return false;
     }
+
     glUniform1i(uniformSampler, 0);
+    return true;
 }
 
 void PicTexture::dealloc() {

@@ -3,7 +3,13 @@
 //
 
 #include "PicPreviewer.h"
+#include <iostream>
+#include <stdlib.h>
+#include <chrono>
 #include <android/log.h>
+
+using namespace std;
+using namespace chrono;
 
 #define MODULE_NAME "PicTexture"
 
@@ -17,11 +23,12 @@ static void threadCallback(void *context) {
 
 PicPreviewer::PicPreviewer() {
     LOGD("PicPreviewer init");
-    message = NONE;
     previewSurface = EGL_NO_SURFACE;
 
     width = 720;
-    height = 720;
+    height = 1024;
+    msgQueue.clear();
+
 }
 
 PicPreviewer::~PicPreviewer() {
@@ -29,9 +36,11 @@ PicPreviewer::~PicPreviewer() {
 }
 
 bool PicPreviewer::start() {
-    LOGD("start");
-    message = NONE;
+    LOGD("start enter");
+//    message = NONE;
     renderThread = new thread(threadCallback, this);
+    LOGD("start exit");
+    return true;
 
 }
 
@@ -42,7 +51,8 @@ bool PicPreviewer::stop() {
         return true;
     }
     unique_lock<mutex> locker(renderMu);
-    message = EXIT;
+//    message = EXIT;
+    msgQueue.push_back(RenderThreadMessage::EXIT);
     locker.unlock();
     newMsgSignal.notify_all();
     renderThread->join();
@@ -52,52 +62,67 @@ bool PicPreviewer::stop() {
 
 
 void PicPreviewer::resetSize(int width, int height) {
-    LOGD("resetSize");
+
     unique_lock<mutex> locker(renderMu);
+    LOGD("resetSize enter");
+    msgQueue.push_back(RenderThreadMessage::RESET_SIZE);
     this->width = width;
     this->height = height;
-    picRender->resetRenderSize(0, 0, width, height);
-    locker.unlock();
     newMsgSignal.notify_all();
+    locker.unlock();
+    LOGD("resetSize exit");
 }
 
 void PicPreviewer::setWindow(ANativeWindow *window) {
-    LOGD("set window");
+    LOGD("set window enter");
     this->window = window;
-    renderMu.lock();
-    message = SET_WINDOW;
-    renderMu.unlock();
+    unique_lock<mutex> locker(renderMu);
+    msgQueue.push_back(RenderThreadMessage::SET_WINDOW);
     newMsgSignal.notify_all();
+    locker.unlock();
+    LOGD("set window exit");
 }
 
 void PicPreviewer::renderLoop() {
     LOGD("render loop enter");
-    bool exit = false;
 
+    bool exitFlag = false;
 
-    while(!exit)
+    RenderThreadMessage message;
+    while(!exitFlag)
     {
+        LOGD("render loop start");
+
         unique_lock<mutex> msgLock(renderMu);
+        while(msgQueue.size() == 0)
+        {
+            newMsgSignal.wait(msgLock);
+        }
+        message = msgQueue.front();
+        msgQueue.pop_front();
         switch (message)
         {
             case SET_WINDOW:
                 init();
                 break;
             case EXIT:
-                exit = true;
+                exitFlag = true;
+                break;
+            case RESET_SIZE:
+                picRender->resetRenderSize(0, 0, width, height);
                 break;
             default:
                 break;
         }
-        message = NONE;
         if(eglCore)
         {
             eglCore->makeCurrent(previewSurface);
             drawFrame();
         }
-        newMsgSignal.wait(msgLock);
+
 
         msgLock.unlock();
+        LOGD("render loop over");
 
     }
 }
@@ -149,9 +174,9 @@ void PicPreviewer::updateTexImage() {
     for(int i = 0; i < width * height; i++)
     {
         pixel[4 * i] = 0xff;
-        pixel[4 * i + 1] = 0x00;
+        pixel[4 * i + 1] = 0xff;
         pixel[4 * i + 2] = 0x00;
-        pixel[4 * i + 3] = 0x88;
+        pixel[4 * i + 3] = 0xff;
     }
     picTexture->updateDataToTexture(pixel, width, height);
 
