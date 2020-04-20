@@ -25,7 +25,7 @@ public:
     bool stop();
     void setWindow(ANativeWindow *window);
     void resetSize(int width, int height);
-
+    void changeColor();
     void renderLoop();
 
 private:
@@ -37,7 +37,7 @@ private:
     int width;
     int height;
     enum RenderThreadMessage{
-        NONE = 0, SET_WINDOW, RESET_SIZE, EXIT
+        NONE = 0, SET_WINDOW, RESET_SIZE, EXIT, CHANGE_COLOR
     };
 
     thread *renderThread = NULL;
@@ -61,6 +61,8 @@ private:
     void drawFrame();
 
     list<RenderThreadMessage> msgQueue;
+
+    int color = 0;
 
 };
 

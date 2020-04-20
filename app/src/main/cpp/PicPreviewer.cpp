@@ -83,6 +83,20 @@ void PicPreviewer::setWindow(ANativeWindow *window) {
     LOGD("set window exit");
 }
 
+void PicPreviewer::changeColor() {
+    LOGD("changeColor");
+    color += 1;
+    if(color >= 3)
+    {
+        color = 0;
+    }
+    unique_lock<mutex> locker(renderMu);
+    msgQueue.push_back(RenderThreadMessage::CHANGE_COLOR);
+    newMsgSignal.notify_all();
+    locker.unlock();
+    LOGD("changeColor exit");
+}
+
 void PicPreviewer::renderLoop() {
     LOGD("render loop enter");
 
@@ -116,6 +130,7 @@ void PicPreviewer::renderLoop() {
         }
         if(eglCore)
         {
+            updateTexImage();
             eglCore->makeCurrent(previewSurface);
             drawFrame();
         }
@@ -170,13 +185,18 @@ void PicPreviewer::updateTexImage() {
     LOGD("updateTexImage");
     int width = 500;
     int height = 500;
-    uint8_t *pixel = (uint8_t *)malloc(width * height * 4 * sizeof(uint8_t));
+    uint8_t *pixel = (uint8_t *)malloc(width * height * 3 * sizeof(uint8_t));
     for(int i = 0; i < width * height; i++)
     {
-        pixel[4 * i] = 0xff;
-        pixel[4 * i + 1] = 0xff;
-        pixel[4 * i + 2] = 0x00;
-        pixel[4 * i + 3] = 0xff;
+//        pixel[4 * i] = 0xff;
+//        pixel[4 * i + 1] = 0xff;
+//        pixel[4 * i + 2] = 0x00;
+//        pixel[4 * i + 3] = 0xff;
+
+        pixel[3 * i] = (color == 0 ? 0xff : 0x00);
+        pixel[3 * i + 1] = (color == 1 ? 0xff : 0x00);
+        pixel[3 * i + 2] = (color == 2 ? 0xff : 0x00);
+
     }
     picTexture->updateDataToTexture(pixel, width, height);
 

@@ -31,6 +31,10 @@ class MainActivity : AppCompatActivity() {
 
         initSurfaceView()
 
+        btn_start.setOnClickListener {
+            nChangeColor()
+        }
+
     }
 
     private fun initSurfaceView()
@@ -65,6 +69,7 @@ class MainActivity : AppCompatActivity() {
     external fun nSetSurface(surfaceView: Any)
     external fun nResetSize(width: Int, height: Int)
     external fun nStop()
+    external fun nChangeColor()
 
     companion object {
 

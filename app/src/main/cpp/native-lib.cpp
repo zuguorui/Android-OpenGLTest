@@ -70,3 +70,12 @@ Java_com_example_opengltest_MainActivity_nStop(JNIEnv *env, jobject instance)
         picPreviewer->stop();
     }
 }
+
+extern "C" JNIEXPORT void JNICALL
+Java_com_example_opengltest_MainActivity_nChangeColor(JNIEnv *env, jobject instance)
+{
+    if(picPreviewer != NULL)
+    {
+        picPreviewer->changeColor();
+    }
+}
