@@ -19,6 +19,10 @@ protected:
 
     void taskFunc(EGLWindow &eglWindow);
 
+    void taskFunc_rgb565(EGLWindow &eglWindow);
+
+    void testFunc_yuv420p(EGLWindow &eglWindow);
+
     std::atomic_bool stopFlag = false;
     std::mutex exitMu;
     std::condition_variable exitCond;
