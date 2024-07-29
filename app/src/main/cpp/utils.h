@@ -14,3 +14,7 @@ char* load_shader_code(AAssetManager *assetManager, const char *path);
 
 bool compute_vertex(int screenWidth, int screenHeight, int imageWidth, int imageHeight, float *result);
 
+void dumpData(const char *name, uint8_t *data, int64_t size);
+
+bool load_storage_file(const char *path, uint8_t **data, int64_t *size);
+

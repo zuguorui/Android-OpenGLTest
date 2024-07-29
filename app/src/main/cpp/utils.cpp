@@ -13,23 +13,27 @@
 using namespace std;
 
 bool load_asset_file(AAssetManager *assetManager, const char *path, uint8_t **data, int64_t *size) {
-    AAsset *asset = AAssetManager_open(assetManager, path, AASSET_MODE_BUFFER);
+    AAsset *asset = AAssetManager_open(assetManager, path, AASSET_MODE_STREAMING);
     if (asset == nullptr) {
         LOGE(TAG, "failed to open asset file: %s", path);
         return false;
     }
-    *size = AAsset_getLength64(asset);
-    *data = (uint8_t *) malloc(*size);
-    memset(*data, 0, *size);
-    int64_t readCount = AAsset_read(asset, *data, *size);
-    if (readCount != *size) {
-        LOGE(TAG, "failed to read from asset: %s, expect size %ld, actual size %d", path, *size, readCount);
+
+    int64_t dataSize = AAsset_getLength64(asset);
+    *data = (uint8_t *) malloc(dataSize);
+    memset(*data, 0, dataSize);
+    int64_t readCount = AAsset_read(asset, *data, dataSize);
+    if (readCount != dataSize) {
+        LOGE(TAG, "failed to read from asset: %s, expect size %ld, actual size %d", path, dataSize, readCount);
         free(*data);
         *data = nullptr;
-        *size = 0;
+        dataSize = 0;
         return false;
     }
     AAsset_close(asset);
+    if (size) {
+        *size = dataSize;
+    }
     return true;
 }
 
@@ -90,4 +94,37 @@ bool compute_vertex(int screenWidth, int screenHeight, int imageWidth, int image
 
     return true;
 }
+
+void dumpData(const char *name, uint8_t *data, int64_t size) {
+    char fullPath[200];
+    sprintf(fullPath, "/data/data/com.zu.opengltest/cache/%s", name);
+    FILE *f = fopen(fullPath, "wb");
+    fwrite(data, 1, size, f);
+    fflush(f);
+    fclose(f);
+}
+
+
+bool load_storage_file(const char *path, uint8_t **data, int64_t *size) {
+    FILE *f = fopen(path, "rb");
+    if (!f) {
+        return false;
+    }
+
+    fseek(f, 0, SEEK_END);
+    int64_t dataSize = ftell(f);
+    fseek(f, 0, SEEK_SET);
+
+    *data = (uint8_t *) malloc(dataSize);
+    fwrite(data, 1, dataSize, f);
+    fclose(f);
+
+    if (size) {
+        *size = dataSize;
+    }
+
+    return true;
+}
+
+
 

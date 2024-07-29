@@ -25,11 +25,11 @@ ComputeShaderTestCase::~ComputeShaderTestCase() {
 }
 
 GLTask ComputeShaderTestCase::onCreateTask() {
-    GLTask task = bind(&ComputeShaderTestCase::taskFunc_rgb565, this, placeholders::_1);
+    GLTask task = bind(&ComputeShaderTestCase::testFunc_nv21_packed, this, placeholders::_1);
     return task;
 }
 
-void ComputeShaderTestCase::taskFunc(EGLWindow &eglWindow) {
+void ComputeShaderTestCase::testFunc(EGLWindow &eglWindow) {
     eglWindow.makeCurrent();
     char *computeShaderCode = nullptr;
     char *renderVertCode = nullptr;
@@ -284,7 +284,7 @@ void ComputeShaderTestCase::taskFunc(EGLWindow &eglWindow) {
     releaseResource();
 }
 
-void ComputeShaderTestCase::taskFunc_rgb565(EGLWindow &eglWindow) {
+void ComputeShaderTestCase::testFunc_rgb565_packed(EGLWindow &eglWindow) {
     eglWindow.makeCurrent();
     char *computeShaderCode = nullptr;
     char *renderVertCode = nullptr;
@@ -339,7 +339,7 @@ void ComputeShaderTestCase::taskFunc_rgb565(EGLWindow &eglWindow) {
     };
 
 
-    computeShaderCode = load_shader_code(assetManager, "shaders/split_rgb565_rgba8_packed.frag");
+    computeShaderCode = load_shader_code(assetManager, "shaders/trans_rgb565_to_rgba8_packed.frag");
     if (computeShaderCode == nullptr) {
         LOGE(TAG, "load shader code failed");
         releaseResource();
@@ -477,7 +477,7 @@ void ComputeShaderTestCase::taskFunc_rgb565(EGLWindow &eglWindow) {
     releaseResource();
 }
 
-void ComputeShaderTestCase::testFunc_yuv420p(EGLWindow &eglWindow) {
+void ComputeShaderTestCase::testFunc_nv21_packed(EGLWindow &eglWindow) {
     eglWindow.makeCurrent();
     char *computeShaderCode = nullptr;
     char *renderVertCode = nullptr;
@@ -489,8 +489,8 @@ void ComputeShaderTestCase::testFunc_yuv420p(EGLWindow &eglWindow) {
     int imageHeight = 864;
     int pixelCount = imageWidth * imageHeight;
 
-    GLuint rawBuffer = 0, rgbBuffer = 0;
-    GLuint rgbTex = 0;
+    GLuint yBuffer = 0, uvBuffer = 0, yuvBuffer = 0;
+    GLuint yuvTex = 0;
 
     GLuint VAO = 0, VBO = 0, EBO = 0;
 
@@ -507,16 +507,18 @@ void ComputeShaderTestCase::testFunc_yuv420p(EGLWindow &eglWindow) {
         if (imageData) {
             free(imageData);
         }
-        if (rawBuffer) {
-            glDeleteBuffers(1, &rawBuffer);
+        if (yBuffer) {
+            glDeleteBuffers(1, &yBuffer);
         }
-        if (rgbBuffer) {
-            glDeleteBuffers(1, &rgbBuffer);
+        if (uvBuffer) {
+            glDeleteBuffers(1, &uvBuffer);
+        }
+        if (yuvBuffer) {
+            glDeleteBuffers(1, &yuvBuffer);
         }
 
-
-        if (rgbTex) {
-            glDeleteTextures(1, &rgbTex);
+        if (yuvTex) {
+            glDeleteTextures(1, &yuvTex);
         }
 
         if (VAO) {
@@ -532,7 +534,7 @@ void ComputeShaderTestCase::testFunc_yuv420p(EGLWindow &eglWindow) {
     };
 
 
-    computeShaderCode = load_shader_code(assetManager, "shaders/split_rgb565_rgba8_packed.frag");
+    computeShaderCode = load_shader_code(assetManager, "shaders/trans_nv21_to_yuvx_packed.frag");
     if (computeShaderCode == nullptr) {
         LOGE(TAG, "load shader code failed");
         releaseResource();
@@ -546,7 +548,7 @@ void ComputeShaderTestCase::testFunc_yuv420p(EGLWindow &eglWindow) {
         return;
     }
 
-    renderFragCode = load_shader_code(assetManager, "shaders/render_rgba8_packed.frag");
+    renderFragCode = load_shader_code(assetManager, "shaders/render_yuvx_packed.frag");
     if (renderFragCode == nullptr) {
         LOGE(TAG, "load render frag code failed");
         releaseResource();
@@ -554,17 +556,26 @@ void ComputeShaderTestCase::testFunc_yuv420p(EGLWindow &eglWindow) {
     }
 
 
-    if (!load_asset_file(assetManager, "images/out-1536*864-420p.yuv", &imageData, &imageSize)) {
+    if (!load_asset_file(assetManager, "images/out-1536*864-nv21.yuv", &imageData, &imageSize)) {
         LOGE(TAG, "load image failed");
         releaseResource();
         return;
     }
 
-    //memset(imageData + imageSize / 2, 9, imageSize / 2);
+
 
     imageWidth = 1536;
     imageHeight = 864;
     pixelCount = imageWidth * imageHeight;
+
+    int64_t y_count = pixelCount;
+    int64_t u_count = y_count / 4;
+    int64_t v_count = y_count / 4;
+    if (y_count + u_count + v_count != imageSize) {
+        LOGE(TAG, "size not correct");
+        releaseResource();
+        return;
+    }
 
 
     typedef uint32_t DATA_TYPE;
@@ -572,15 +583,21 @@ void ComputeShaderTestCase::testFunc_yuv420p(EGLWindow &eglWindow) {
     int GL_FORMAT = GL_RGBA;
     int GL_DATA_TYPE = GL_UNSIGNED_BYTE;
 
-    glGenBuffers(1, &rawBuffer);
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER, rawBuffer);
-    glBufferData(GL_SHADER_STORAGE_BUFFER, imageSize, imageData, GL_STATIC_DRAW);
+    // 申请作为输入的yBuffer和uvBuffer
+    glGenBuffers(1, &yBuffer);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, yBuffer);
+    glBufferData(GL_SHADER_STORAGE_BUFFER, pixelCount * sizeof(uint8_t), imageData, GL_STATIC_DRAW);
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 
-    // 申请三通道的buffer，用来存储分离后的通道数据。分离之后的数据都是uint8_t的
+    // nv21数据先Y，后VU。UV的总长度为总像素量的一半
+    glGenBuffers(1, &uvBuffer);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, uvBuffer);
+    glBufferData(GL_SHADER_STORAGE_BUFFER, pixelCount / 2 * sizeof(uint8_t), imageData + pixelCount * sizeof(uint8_t), GL_STATIC_DRAW);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 
-    glGenBuffers(1, &rgbBuffer);
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER, rgbBuffer);
+    // 申请作为输出的yuvBuffer
+    glGenBuffers(1, &yuvBuffer);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, yuvBuffer);
     glBufferData(GL_SHADER_STORAGE_BUFFER, pixelCount * sizeof(DATA_TYPE), nullptr, GL_DYNAMIC_COPY);
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 
@@ -592,10 +609,12 @@ void ComputeShaderTestCase::testFunc_yuv420p(EGLWindow &eglWindow) {
     }
 
     computeProgram.use();
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER, rawBuffer);
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, rawBuffer);
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER, rgbBuffer);
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, rgbBuffer);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, yBuffer);
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, yBuffer);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, uvBuffer);
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, uvBuffer);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, yuvBuffer);
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, yuvBuffer);
 
     computeProgram.setInt("width", imageWidth);
     computeProgram.setInt("height", imageHeight);
@@ -604,34 +623,22 @@ void ComputeShaderTestCase::testFunc_yuv420p(EGLWindow &eglWindow) {
 
     glMemoryBarrier(GL_VERTEX_ATTRIB_ARRAY_BARRIER_BIT);
 
-
     // 下个阶段，准备绘制
-
-    DATA_TYPE *tempBuffer1 = (DATA_TYPE *) malloc(pixelCount * sizeof(DATA_TYPE));
-    for (int i = 0; i < pixelCount; i++) {
-        tempBuffer1[i] = 0x0000FF00;
-    }
-
-    DATA_TYPE *tempBuffer0 = (DATA_TYPE *) malloc(pixelCount * sizeof(DATA_TYPE));
-    memset(tempBuffer0, 0, pixelCount * sizeof(DATA_TYPE));
-
-    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, rgbBuffer);
-    DATA_TYPE *redPtr = (DATA_TYPE *)glMapBufferRange(GL_PIXEL_UNPACK_BUFFER, 0, pixelCount * sizeof(DATA_TYPE), GL_MAP_WRITE_BIT | GL_MAP_READ_BIT);
-    LOGD(TAG, "redPtr = %ld", redPtr);
-
-    for (int i = 0; i < 32; i++) {
-        DATA_TYPE splitR = redPtr[i + 2 * imageWidth];
-        LOGD(TAG, "r = 0x%x", splitR);
-    }
-    //memset(redPtr, 0x0F, pixelCount * sizeof(DATA_TYPE));
-//    memcpy(redPtr, tempBuffer1, pixelCount * sizeof(DATA_TYPE));
-    glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
+//    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, yuvBuffer);
+//    DATA_TYPE *ptr = (DATA_TYPE *)glMapBufferRange(GL_PIXEL_UNPACK_BUFFER, 0, pixelCount * sizeof(DATA_TYPE), GL_MAP_WRITE_BIT | GL_MAP_READ_BIT);
+//
+//    for (int i = 0; i < 16; i++) {
+//        DATA_TYPE splitR = ptr[i];
+//        LOGD(TAG, "r = 0x%x", splitR);
+//    }
+//    glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
+//    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 
 
-    // 分别构造rgb三个通道的texture
-    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, rgbBuffer);
-    glGenTextures(1, &rgbTex);
-    glBindTexture(GL_TEXTURE_2D, rgbTex);
+
+    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, yuvBuffer);
+    glGenTextures(1, &yuvTex);
+    glBindTexture(GL_TEXTURE_2D, yuvTex);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_INTERNAL_FORMAT, imageWidth, imageHeight, 0, GL_FORMAT, GL_DATA_TYPE,
                  nullptr);
     glGenerateMipmap(GL_TEXTURE_2D);
@@ -651,8 +658,8 @@ void ComputeShaderTestCase::testFunc_yuv420p(EGLWindow &eglWindow) {
     renderProgram.use();
 
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, rgbTex);
-    renderProgram.setInt("rgba_tex", 0);
+    glBindTexture(GL_TEXTURE_2D, yuvTex);
+    renderProgram.setInt("yuvx_tex", 0);
 
     glClearColor(0.0f, 0.0f, 1.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
@@ -669,6 +676,80 @@ void ComputeShaderTestCase::testFunc_yuv420p(EGLWindow &eglWindow) {
 
     releaseResource();
 }
+
+void testFunc_nv21_planner(EGLWindow &eglWindow) {
+
+}
+
+void ComputeShaderTestCase::testFunc_precision(EGLWindow &eglWindow) {
+    eglWindow.makeCurrent();
+    char *computeShaderCode = nullptr;
+
+    GLuint inputBuffer = 0, outputBuffer = 0;
+
+    auto releaseResource = [&]() {
+        if (computeShaderCode) {
+            free(computeShaderCode);
+        }
+        if (inputBuffer) {
+            glDeleteBuffers(1, &inputBuffer);
+        }
+        if (outputBuffer) {
+            glDeleteBuffers(1, &outputBuffer);
+        }
+    };
+
+    computeShaderCode = load_shader_code(assetManager, "shaders/precision_test.frag");
+    if (computeShaderCode == nullptr) {
+        LOGE(TAG, "load shader code failed");
+        releaseResource();
+        return;
+    }
+
+    const int DATA_SIZE = 10;
+    int32_t *data = (int32_t *)malloc(DATA_SIZE * sizeof(int32_t));
+    for (int i = 0; i < DATA_SIZE; i++) {
+        data[i] = 0xAABBCCDD;
+    }
+
+    glGenBuffers(1, &inputBuffer);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, inputBuffer);
+    glBufferData(GL_SHADER_STORAGE_BUFFER, DATA_SIZE * sizeof(int32_t), data, GL_STATIC_DRAW);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+
+    glGenBuffers(1, &outputBuffer);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, outputBuffer);
+    glBufferData(GL_SHADER_STORAGE_BUFFER, DATA_SIZE * sizeof(int32_t), nullptr, GL_STATIC_DRAW);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+
+    ComputeProgram computeProgram;
+    if (!computeProgram.compile(computeShaderCode)) {
+        LOGE(TAG, "compile compute shader failed");
+        releaseResource();
+        return;
+    }
+
+    computeProgram.use();
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, inputBuffer);
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, outputBuffer);
+
+    glDispatchCompute(DATA_SIZE, 1, 1);
+
+    glMemoryBarrier(GL_VERTEX_ATTRIB_ARRAY_BARRIER_BIT);
+
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, outputBuffer);
+    int32_t *ptr = (int32_t *) glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, DATA_SIZE * sizeof(int32_t), GL_MAP_WRITE_BIT | GL_MAP_READ_BIT);
+    for (int i = 0; i < DATA_SIZE; i++) {
+        int32_t num = ptr[i];
+        LOGD(TAG, "num = 0x%x", num);
+    }
+    glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+
+    releaseResource();
+
+}
+
+
 
 void ComputeShaderTestCase::stop() {
     stopFlag = true;

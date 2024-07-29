@@ -8,6 +8,7 @@
 #include <iostream>
 #include <stdlib.h>
 #include <android/asset_manager.h>
+#include <android/asset_manager_jni.h>
 
 class TestCase {
 public:
