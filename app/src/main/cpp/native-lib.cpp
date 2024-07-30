@@ -10,7 +10,7 @@
 
 TestCase *testCase = nullptr;
 
-
+#define TAG "native-lib"
 
 extern "C"
 JNIEXPORT void JNICALL
@@ -19,6 +19,7 @@ Java_com_zu_opengltest_GLTest_testComputeShader(JNIEnv *env, jobject thiz, jobje
     if (testCase != nullptr) {
         return;
     }
+    LOGD(TAG, "testCompileShader");
     ANativeWindow *window = ANativeWindow_fromSurface(env, surface);
     AAssetManager *assetManager = AAssetManager_fromJava(env, asset_manager);
     testCase = new ComputeShaderTestCase();
@@ -28,6 +29,8 @@ Java_com_zu_opengltest_GLTest_testComputeShader(JNIEnv *env, jobject thiz, jobje
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_zu_opengltest_GLTest_stopTest(JNIEnv *env, jobject thiz) {
+
+    LOGD(TAG, "stopTest");
     if (testCase == nullptr) {
         return;
     }
@@ -40,6 +43,7 @@ extern "C"
 JNIEXPORT void JNICALL
 Java_com_zu_opengltest_GLTest_testInit(JNIEnv *env, jobject thiz, jobject surface, jint width,
                                        jint height, jobject asset_manager) {
+
     if (testCase != nullptr) {
         return;
     }

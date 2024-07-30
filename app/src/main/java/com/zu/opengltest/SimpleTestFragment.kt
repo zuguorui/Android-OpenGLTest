@@ -33,8 +33,6 @@ class SimpleTestFragment : Fragment() {
         }
     }
 
-    private lateinit var surfaceView: SurfaceView
-
     override fun onCreate(savedInstanceState: Bundle?) {
         Timber.d("onCreate")
         super.onCreate(savedInstanceState)
@@ -46,17 +44,13 @@ class SimpleTestFragment : Fragment() {
     ): View? {
         Timber.d("onCreateView")
         binding = FragmentSimpleTestBinding.inflate(layoutInflater, container, false)
-        surfaceView = SurfaceView(requireContext())
-        val layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
-        surfaceView.layoutParams = layoutParams
-        surfaceView.holder.addCallback(surfaceCallback)
-        binding.surfaceContainer.addView(surfaceView)
+        binding.surfaceView.holder.addCallback(surfaceCallback)
         return binding.root
     }
 
     private fun setupTest(width: Int, height: Int) {
         Timber.d("setupTest")
-        val surface = surfaceView.holder.surface
+        val surface = binding.surfaceView.holder.surface
         when (testCase) {
             GLTest.TEST_INIT -> {
                 GLTest.testInit(surface, width, height, requireContext().assets)

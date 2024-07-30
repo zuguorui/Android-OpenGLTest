@@ -5,6 +5,9 @@
 #pragma once
 #include "TestCase.h"
 
+/**
+ * 计算着色器的测试用例
+ * */
 class ComputeShaderTestCase: public TestCase{
 
 public:
@@ -35,8 +38,15 @@ protected:
 
     void testFunc_nv21_packed(EGLWindow &eglWindow);
 
+    /*
+     * planner结尾的函数表示它将三个颜色分量分成三个buffer分别送到片段着色器。具体优劣可以看上面。
+     * 这种情况下，纹理格式是GL_R8, GL_RED, GL_UNSIGNED_BYTE。
+     * */
     void testFunc_nv21_planner(EGLWindow &eglWindow);
 
+    /*
+     * 测试精度。发现无论在计算着色器中设置何种精度，SSBO总是按32bit读写。
+     * */
     void testFunc_precision(EGLWindow &eglWindow);
 
     std::atomic_bool stopFlag = false;

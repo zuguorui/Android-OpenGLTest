@@ -21,7 +21,9 @@ InitTest::InitTest() {
 }
 
 InitTest::~InitTest() {
+    LOGD(TAG, "~InitTest: begin");
 
+    LOGD(TAG, "~InitTest: complete");
 }
 
 GLTask InitTest::onCreateTask() {

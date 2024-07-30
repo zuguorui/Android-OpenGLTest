@@ -1,5 +1,6 @@
 package com.zu.opengltest
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -28,26 +29,38 @@ class TestCaseListFragment: Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         binding.btnInitTest.setOnClickListener {
-//            simpleTestFragment.testCase = GLTest.TEST_INIT
-            val fragment = SimpleTestFragment()
-            fragment.testCase = GLTest.TEST_INIT
-            toFragment(fragment)
+            toFragment(GLTest.TEST_INIT)
+//            toActivity(GLTest.TEST_INIT)
         }
         binding.btnComputeShader.setOnClickListener {
-            //simpleTestFragment.testCase = GLTest.TEST_COMPUTE_SHADER
-            val fragment = SimpleTestFragment()
-            fragment.testCase = GLTest.TEST_COMPUTE_SHADER
-            toFragment(fragment)
+            toFragment(GLTest.TEST_COMPUTE_SHADER)
+//            toActivity(GLTest.TEST_COMPUTE_SHADER)
         }
 
     }
 
-    private fun toFragment(fragment: Fragment) {
+    private fun toFragment(@GLTest.TestCase testCase: Int) {
+        val fragment = when (testCase) {
+            GLTest.TEST_INIT,
+            GLTest.TEST_COMPUTE_SHADER-> {
+                simpleTestFragment.testCase = testCase
+                simpleTestFragment
+            }
+            else -> return
+        }
+
         requireActivity().supportFragmentManager.beginTransaction()
             .hide(this)
             .add(R.id.fragment_container, fragment)
             .addToBackStack(null)
             .commitAllowingStateLoss()
+    }
+
+    private fun toActivity(@GLTest.TestCase testCase: Int) {
+        val intent = Intent(requireActivity(), SimpleTestActivity::class.java).apply {
+            putExtra("test_case", testCase)
+        }
+        requireActivity().startActivity(intent)
     }
 
 

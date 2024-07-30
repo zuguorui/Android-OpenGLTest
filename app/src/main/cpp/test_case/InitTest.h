@@ -8,6 +8,9 @@
 
 #include "TestCase.h"
 
+/**
+ * 测试OpenGL ES环境的初始化是否成功
+ * */
 class InitTest: public TestCase {
 public:
     InitTest();
