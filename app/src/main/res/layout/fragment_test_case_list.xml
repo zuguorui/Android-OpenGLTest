@@ -3,7 +3,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".TestCaseListFragment">
+    tools:context=".TestCaseListFragment"
+    android:padding="5dp">
 
     <ScrollView
         android:layout_width="match_parent"
@@ -13,18 +14,69 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:gravity="center_horizontal">
-            <Button
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="初始化测试"
-                android:layout_margin="5dp"
-                android:id="@+id/btn_init_test"/>
-            <Button
-                android:layout_width="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+                <Button
+                    android:layout_width="@dimen/test_btn_width"
+                    android:layout_height="wrap_content"
+                    android:text="初始化测试"
+                    android:layout_margin="5dp"
+                    android:id="@+id/btn_init_test"/>
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="测试OpenGL ES环境是否初始化成功，成功则会渲染出一个纯色矩形"/>
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/divider_color"
+                android:layout_marginVertical="10dp"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="计算着色器"
-                android:layout_margin="5dp"
-                android:id="@+id/btn_compute_shader"/>
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+                <Button
+                    android:layout_width="@dimen/test_btn_width"
+                    android:layout_height="wrap_content"
+                    android:text="计算着色器"
+                    android:layout_margin="5dp"
+                    android:id="@+id/btn_compute_shader"/>
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="使用计算着色器将RGB565、NV21等格式处理成RGBA8、YUVX8或者将各颜色通道单独分离出来，方便创建纹理，然后渲染出来"/>
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/divider_color"
+                android:layout_marginVertical="10dp"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+                <Button
+                    android:layout_width="@dimen/test_btn_width"
+                    android:layout_height="wrap_content"
+                    android:text="渲染视频帧"
+                    android:layout_margin="5dp"
+                    android:id="@+id/btn_render_video_frame"/>
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="直接将RGB565、NV21等格式的数据创建纹理并渲染"/>
+            </LinearLayout>
+
 
         </LinearLayout>
     </ScrollView>

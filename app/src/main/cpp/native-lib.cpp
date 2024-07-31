@@ -2,8 +2,9 @@
 #include <string>
 #include "GLEnv.h"
 #include "TestCase.h"
-#include "ComputeShaderTestCase.h"
+#include "ComputeShaderTest.h"
 #include "InitTest.h"
+#include "RenderTest.h"
 #include <android/native_window.h>
 #include <android/asset_manager.h>
 #include <android/asset_manager_jni.h>
@@ -14,6 +15,7 @@ TestCase *testCase = nullptr;
 
 #define TEST_INIT 0
 #define TEST_COMPUTE_SHADER 1
+#define TEST_RENDER_VIDEO_FRAME 2
 
 extern "C"
 JNIEXPORT void JNICALL
@@ -40,7 +42,10 @@ Java_com_zu_opengltest_GLTest_startTest(JNIEnv *env, jobject thiz, jint testType
             testCase = new InitTest();
             break;
         case TEST_COMPUTE_SHADER:
-            testCase = new ComputeShaderTestCase();
+            testCase = new ComputeShaderTest();
+            break;
+        case TEST_RENDER_VIDEO_FRAME:
+            testCase = new RenderTest();
             break;
         default:
             break;

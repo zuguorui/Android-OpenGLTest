@@ -2,7 +2,7 @@
 // Created by zu on 2024/7/26.
 //
 
-#include "ComputeShaderTestCase.h"
+#include "ComputeShaderTest.h"
 #include "utils.h"
 #include "gl_utils.h"
 #include "Log.h"
@@ -12,25 +12,25 @@
 #include "RenderProgram.h"
 #include "data.h"
 
-#define TAG "ComputeShaderTestCase"
+#define TAG "ComputeShaderTest"
 
 using namespace std;
 
-ComputeShaderTestCase::ComputeShaderTestCase() {
+ComputeShaderTest::ComputeShaderTest() {
 
 }
 
-ComputeShaderTestCase::~ComputeShaderTestCase() {
-    LOGD(TAG, "~ComputeShaderTestCase: begin");
-    LOGD(TAG, "~ComputeShaderTestCase: complete");
+ComputeShaderTest::~ComputeShaderTest() {
+    LOGD(TAG, "ComputeShaderTestgin");
+    LOGD(TAG, "ComputeShaderTestmplete");
 }
 
-GLTask ComputeShaderTestCase::onCreateTask() {
-    GLTask task = bind(&ComputeShaderTestCase::testFunc_nv21_packed, this, placeholders::_1);
+GLTask ComputeShaderTest::onCreateTask() {
+    GLTask task = bind(&ComputeShaderTest::testFunc_nv21_packed, this, placeholders::_1);
     return task;
 }
 
-void ComputeShaderTestCase::testFunc_rgb565_packed(EGLWindow &eglWindow) {
+void ComputeShaderTest::testFunc_rgb565_packed(EGLWindow &eglWindow) {
     eglWindow.makeCurrent();
     char *computeShaderCode = nullptr;
     char *renderVertCode = nullptr;
@@ -224,7 +224,7 @@ void ComputeShaderTestCase::testFunc_rgb565_packed(EGLWindow &eglWindow) {
     releaseResource();
 }
 
-void ComputeShaderTestCase::testFunc_nv21_packed(EGLWindow &eglWindow) {
+void ComputeShaderTest::testFunc_nv21_packed(EGLWindow &eglWindow) {
     eglWindow.makeCurrent();
     char *computeShaderCode = nullptr;
     char *renderVertCode = nullptr;
@@ -427,7 +427,7 @@ void ComputeShaderTestCase::testFunc_nv21_packed(EGLWindow &eglWindow) {
     releaseResource();
 }
 
-void ComputeShaderTestCase::testFunc_nv21_planner(EGLWindow &eglWindow) {
+void ComputeShaderTest::testFunc_nv21_planner(EGLWindow &eglWindow) {
     eglWindow.makeCurrent();
     char *computeShaderCode = nullptr;
     char *renderVertCode = nullptr;
@@ -677,7 +677,7 @@ void ComputeShaderTestCase::testFunc_nv21_planner(EGLWindow &eglWindow) {
     releaseResource();
 }
 
-void ComputeShaderTestCase::testFunc_precision(EGLWindow &eglWindow) {
+void ComputeShaderTest::testFunc_precision(EGLWindow &eglWindow) {
     eglWindow.makeCurrent();
     char *computeShaderCode = nullptr;
 
@@ -747,9 +747,9 @@ void ComputeShaderTestCase::testFunc_precision(EGLWindow &eglWindow) {
 
 
 
-void ComputeShaderTestCase::stop() {
+void ComputeShaderTest::stop() {
     LOGD(TAG, "stop: begin");
-    stopFlag = true;
+
     exitCond.notify_all();
     TestCase::stop();
     LOGD(TAG, "stop: complete");

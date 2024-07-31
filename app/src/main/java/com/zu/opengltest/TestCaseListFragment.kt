@@ -30,19 +30,20 @@ class TestCaseListFragment: Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         binding.btnInitTest.setOnClickListener {
             toFragment(GLTest.TEST_INIT)
-//            toActivity(GLTest.TEST_INIT)
         }
         binding.btnComputeShader.setOnClickListener {
             toFragment(GLTest.TEST_COMPUTE_SHADER)
-//            toActivity(GLTest.TEST_COMPUTE_SHADER)
         }
-
+        binding.btnRenderVideoFrame.setOnClickListener {
+            toFragment(GLTest.TEST_RENDER_VIDEO_FRAME)
+        }
     }
 
     private fun toFragment(@GLTest.TestCase testCase: Int) {
         val fragment = when (testCase) {
             GLTest.TEST_INIT,
-            GLTest.TEST_COMPUTE_SHADER-> {
+            GLTest.TEST_COMPUTE_SHADER,
+            GLTest.TEST_RENDER_VIDEO_FRAME -> {
                 simpleTestFragment.testCase = testCase
                 simpleTestFragment
             }

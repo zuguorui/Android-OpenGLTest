@@ -8,12 +8,12 @@
 /**
  * 计算着色器的测试用例
  * */
-class ComputeShaderTestCase: public TestCase{
+class ComputeShaderTest: public TestCase{
 
 public:
-    ComputeShaderTestCase();
+    ComputeShaderTest();
 
-    ~ComputeShaderTestCase();
+    ~ComputeShaderTest();
 
     void stop() override;
 
@@ -49,7 +49,6 @@ protected:
      * */
     void testFunc_precision(EGLWindow &eglWindow);
 
-    std::atomic_bool stopFlag = false;
     std::mutex exitMu;
     std::condition_variable exitCond;
 };
