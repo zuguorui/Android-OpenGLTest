@@ -12,19 +12,8 @@ TestCase *testCase = nullptr;
 
 #define TAG "native-lib"
 
-extern "C"
-JNIEXPORT void JNICALL
-Java_com_zu_opengltest_GLTest_testComputeShader(JNIEnv *env, jobject thiz, jobject surface,
-                                                jint width, jint height, jobject asset_manager) {
-    if (testCase != nullptr) {
-        return;
-    }
-    LOGD(TAG, "testCompileShader");
-    ANativeWindow *window = ANativeWindow_fromSurface(env, surface);
-    AAssetManager *assetManager = AAssetManager_fromJava(env, asset_manager);
-    testCase = new ComputeShaderTestCase();
-    testCase->start(window, width, height, assetManager);
-}
+#define TEST_INIT 0
+#define TEST_COMPUTE_SHADER 1
 
 extern "C"
 JNIEXPORT void JNICALL
@@ -40,15 +29,29 @@ Java_com_zu_opengltest_GLTest_stopTest(JNIEnv *env, jobject thiz) {
 }
 
 extern "C"
-JNIEXPORT void JNICALL
-Java_com_zu_opengltest_GLTest_testInit(JNIEnv *env, jobject thiz, jobject surface, jint width,
-                                       jint height, jobject asset_manager) {
-
+JNIEXPORT jboolean JNICALL
+Java_com_zu_opengltest_GLTest_startTest(JNIEnv *env, jobject thiz, jint testType, jobject surface,
+                                        jint width, jint height, jobject asset_manager) {
     if (testCase != nullptr) {
-        return;
+        return false;
+    }
+    switch (testType) {
+        case TEST_INIT:
+            testCase = new InitTest();
+            break;
+        case TEST_COMPUTE_SHADER:
+            testCase = new ComputeShaderTestCase();
+            break;
+        default:
+            break;
+    }
+    if (testCase == nullptr) {
+        return false;
     }
     ANativeWindow *window = ANativeWindow_fromSurface(env, surface);
     AAssetManager *assetManager = AAssetManager_fromJava(env, asset_manager);
-    testCase = new InitTest();
     testCase->start(window, width, height, assetManager);
+    return true;
 }
+
+

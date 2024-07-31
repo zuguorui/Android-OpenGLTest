@@ -21,9 +21,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.OpenGLTest"
         tools:targetApi="31">
-        <activity
-            android:name=".SimpleTestActivity"
-            android:exported="false" />
+
         <activity
             android:name=".MainActivity"
             android:exported="true"

@@ -5,6 +5,7 @@ import androidx.annotation.IntDef
 
 object GLTest {
 
+    // 和native-lib.cpp中的定义保持一致。
     const val TEST_INIT = 0
     const val TEST_COMPUTE_SHADER = 1
 
@@ -15,8 +16,7 @@ object GLTest {
     @Retention(AnnotationRetention.SOURCE)
     annotation class TestCase
 
-    external fun testInit(surface: Any, width: Int, height: Int, assetManager: AssetManager)
-    external fun testComputeShader(surface: Any, width: Int, height: Int, assetManager: AssetManager)
+    external fun startTest(@TestCase testCase: Int, surface: Any, width: Int, height: Int, assetManager: AssetManager): Boolean
     external fun stopTest()
 
     init {

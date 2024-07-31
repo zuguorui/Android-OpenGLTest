@@ -51,14 +51,7 @@ class SimpleTestFragment : Fragment() {
     private fun setupTest(width: Int, height: Int) {
         Timber.d("setupTest")
         val surface = binding.surfaceView.holder.surface
-        when (testCase) {
-            GLTest.TEST_INIT -> {
-                GLTest.testInit(surface, width, height, requireContext().assets)
-            }
-            GLTest.TEST_COMPUTE_SHADER -> {
-                GLTest.testComputeShader(surface, width, height, requireContext().assets)
-            }
-        }
+        GLTest.startTest(testCase, surface, width, height, requireContext().assets)
     }
 
     override fun onDestroyView() {

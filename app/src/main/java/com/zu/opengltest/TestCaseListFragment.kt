@@ -50,18 +50,18 @@ class TestCaseListFragment: Fragment() {
         }
 
         requireActivity().supportFragmentManager.beginTransaction()
+            .setCustomAnimations(
+                R.anim.slide_in,
+                R.anim.fade_out,
+                R.anim.fade_in,
+                R.anim.slide_out
+            )
             .hide(this)
             .add(R.id.fragment_container, fragment)
             .addToBackStack(null)
             .commitAllowingStateLoss()
     }
 
-    private fun toActivity(@GLTest.TestCase testCase: Int) {
-        val intent = Intent(requireActivity(), SimpleTestActivity::class.java).apply {
-            putExtra("test_case", testCase)
-        }
-        requireActivity().startActivity(intent)
-    }
 
 
 }
