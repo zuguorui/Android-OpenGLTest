@@ -38,7 +38,7 @@ class MainActivity : AppCompatActivity() {
         // 控制system bars隐藏及外观
         WindowCompat.getInsetsController(window, window.decorView).apply {
             hide(WindowInsetsCompat.Type.navigationBars())
-            //hide(WindowInsetsCompat.Type.statusBars())
+            hide(WindowInsetsCompat.Type.statusBars())
             // 控制状态栏色彩。light代表适配浅色界面，那么状态栏文本就是深色的
             // isAppearanceLightStatusBars = false
             // 控制system bars的行为。什么时候隐藏的bars会出现。这里是如果在bar区域滑动，则短暂出现，然后消失。
@@ -59,7 +59,7 @@ class MainActivity : AppCompatActivity() {
             // if that's more appropriate.
 
             v.updateLayoutParams<ViewGroup.MarginLayoutParams> {
-                topMargin = insets.top
+                //topMargin = insets.top
             }
 
             // Return CONSUMED if you don't want want the window insets to keep passing

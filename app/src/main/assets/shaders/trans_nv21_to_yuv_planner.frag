@@ -10,8 +10,8 @@ precision highp int;
 
 // 分配本地工作组大小。
 // 一个unit一次读取32bit，也就是VUVU，因此一个x为4。
-// nv21中uv平面高度是图像高度的一半，所以这里y=8。就可以确保一个local group每次可以处理16x16纹素。
-layout (local_size_x = 4, local_size_y = 8) in;
+// nv21中uv平面高度是图像高度的一半，所以这里y=4。就可以确保一个local group每次可以处理16x8像素。
+layout (local_size_x = 4, local_size_y = 4) in;
 
 // nv21的y平面本来就是独立的，这里只需要分离vu平面。
 layout (binding = 0, std430) readonly buffer VU_BUFFER {

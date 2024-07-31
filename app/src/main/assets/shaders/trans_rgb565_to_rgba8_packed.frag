@@ -5,12 +5,13 @@
 precision highp int;
 //precision highp float;
 
-// 分配本地工作组大小。图像尺寸一般是16的整数倍。
+// 分配本地工作组大小。图像宽度一般是16的整数倍。
 // 这里int精度是highp，为32位。所有buffer都被看作是int32数组。所以rgb565一次读取的是2个纹素。
-// 因此一个work unit处理2纹素，宽度减半为8。实际上一个local group仍然处理16x16纹素。yinci
-// 外部dispatch仍然是(width/16, height/16, 1)。
+// 因此一个work unit处理2x1纹素，宽度减半为8。一个local group处理16x8纹素。
+// 之所以要搞成16x8，是因为1920x1080这个主流分辨率的高度不是16的整数倍。
+// 外部dispatch仍然是(width/16, height/8, 1)。
 // 也许不声明上面的precision，而是为每个变量单独声明精度，可能会使rawBuffer为16位数组。但是试了一下并没有用。
-layout (local_size_x = 8, local_size_y = 16) in;
+layout (local_size_x = 8, local_size_y = 8) in;
 
 layout (binding = 0, std430) readonly buffer RAW_BUFFER {
     int rawBuffer[];
@@ -61,8 +62,8 @@ void main(void) {
 
     // 同样注意这里的索引，目标buffer按int32计，则宽高都没有变化。
     // 但是这里x的取值范围减半，所以这里x2。
-    rgbaBuffer[y * width + 2 * x] = rgba_h;
-    rgbaBuffer[y * width + 2 * x + 1] = rgba_l;
+    rgbaBuffer[y * width + 2 * x] = rgba_l;
+    rgbaBuffer[y * width + 2 * x + 1] = rgba_h;
 
     memoryBarrier();
 }

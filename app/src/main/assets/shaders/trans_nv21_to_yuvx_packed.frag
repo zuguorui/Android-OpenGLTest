@@ -7,12 +7,19 @@
 
 precision highp int;
 
-// 分配本地工作组大小。图像尺寸一般是16的整数倍。一个local group处理16*16纹素。
-// 一个unit读取2个Y分量，例如y[0][0-1]。读取2个vu分量，例如v[0][0]和u[0][0]。
-// 因此一个work unit处理4纹素，宽度减半为8。实际上一个work unit仍然处理16x16纹素。
-// 外部dispatch仍然是(width/16, height/16, 1)。
-// nv21数据平面结构：y和uv宽度相同，uv的高度是y的一半。
-layout (local_size_x = 8, local_size_y = 16) in;
+/**
+分配本地工作组大小。
+nv21平面分布如下：
+第一行:      Y Y | Y Y
+第一二行共用: V U | V U
+第二行:      Y Y | Y Y
+y和uv宽度相同，uv的高度是y的一半。
+
+buffer按32bit读取，这里为了使着色器代码简洁一些，我选择一次处理2个纹素。因此根据x的奇偶性，选择输入的高16位或者低16位。
+一般视频的宽度是16的整数倍，而高度基本都是8的整数倍。所以这里设置local group的size为8x8，即一个local group处理
+16x8像素，外部dispatch(imageWidth / 16, imageHeight / 8, 1)。
+*/
+layout (local_size_x = 8, local_size_y = 8) in;
 
 layout (binding = 0, std430) readonly buffer Y_BUFFER {
     int yBuffer[];
